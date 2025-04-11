@@ -1,124 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cumpleaños de Chilo</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    canvas {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      cursor: pointer;
-    }
-
-    #fullscreenBtn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
-      background: white;
-      padding: 8px 12px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-<body>
-
-  <button id="fullscreenBtn">Pantalla completa</button>
-  <canvas id="canvas"></canvas>
-  <video id="video" playsinline muted style="display: none;">
-    <source src="WhatsApp Video 2025-04-10 at 9.59.04 PM.mp4" type="video/mp4" />
-    Tu navegador no soporta el video.
-  </video>
-
-  <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const video = document.getElementById('video');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-
-    // Hotspot relativo (x, y, w, h en % del video)
-    const hotspot = {
-      x: 0.44, // 44%
-      y: 0.32, // 32%
-      width: 0.12, // 12%
-      height: 0.10, // 10%
-      startTime: 17,
-      endTime: 22,
-      link: "https://maps.app.goo.gl/soZ3Fh1o4QrZ5Hmc6"
-    };
-
-    function resizeCanvas() {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-    }
-
-    function drawFrame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const t = video.currentTime;
-      if (t >= hotspot.startTime && t <= hotspot.endTime) {
-        // Opcional: dibuja un rectángulo visual del hotspot
-        // ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-        // ctx.fillRect(
-        //   canvas.width * hotspot.x,
-        //   canvas.height * hotspot.y,
-        //   canvas.width * hotspot.width,
-        //   canvas.height * hotspot.height
-        // );
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cumpleaños de Chilo</title>
+    <style>
+      body {
+        margin: 0;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
       }
 
-      requestAnimationFrame(drawFrame);
-    }
+      canvas {
+        max-width: 100%;
+        width: 100vw;
+        height: auto;
+        display: block;
+        cursor: pointer;
+      }
 
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
+      #startBtn,
+      #fullscreenBtn {
+        position: fixed;
+        z-index: 1000;
+        background: white;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
 
-      const t = video.currentTime;
-      if (t >= hotspot.startTime && t <= hotspot.endTime) {
-        if (
-          x >= hotspot.x &&
-          x <= hotspot.x + hotspot.width &&
-          y >= hotspot.y &&
-          y <= hotspot.y + hotspot.height
-        ) {
-          window.open(hotspot.link, '_blank');
+      #startBtn {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      #fullscreenBtn {
+        top: 10px;
+        right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Botones -->
+    <button id="startBtn">Reproducir Video</button>
+
+    <!-- Canvas donde se dibuja el video -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Video oculto (pero con sonido habilitado) -->
+    <video id="video" playsinline style="display: none">
+      <source
+        src="WhatsApp Video 2025-04-10 at 9.59.04 PM.mp4"
+        type="video/mp4"
+      />
+      Tu navegador no soporta el video.
+    </video>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const video = document.getElementById("video");
+      const startBtn = document.getElementById("startBtn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+      // Hotspot relativo (x, y, ancho, alto como porcentaje del video)
+      const hotspot = {
+        x: 0.44, // 44% desde la izquierda
+        y: 0.32, // 32% desde arriba
+        width: 0.12, // 12% del ancho del video
+        height: 0.1, // 10% del alto del video
+        startTime: 17,
+        endTime: 22,
+        link: "https://maps.app.goo.gl/soZ3Fh1o4QrZ5Hmc6",
+      };
+
+      function resizeCanvas() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+
+      function drawFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Para depurar visualmente el área clickeable (opcional)
+        // const t = video.currentTime;
+        // if (t >= hotspot.startTime && t <= hotspot.endTime) {
+        //   ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+        //   ctx.fillRect(
+        //     canvas.width * hotspot.x,
+        //     canvas.height * hotspot.y,
+        //     canvas.width * hotspot.width,
+        //     canvas.height * hotspot.height
+        //   );
+        // }
+
+        requestAnimationFrame(drawFrame);
+      }
+
+      canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        const t = video.currentTime;
+        if (t >= hotspot.startTime && t <= hotspot.endTime) {
+          if (
+            x >= hotspot.x &&
+            x <= hotspot.x + hotspot.width &&
+            y >= hotspot.y &&
+            y <= hotspot.y + hotspot.height
+          ) {
+            window.open(hotspot.link, "_blank");
+          }
         }
-      }
-    });
+      });
 
-    fullscreenBtn.addEventListener('click', () => {
-      if (canvas.requestFullscreen) {
-        canvas.requestFullscreen();
-      } else if (canvas.webkitRequestFullscreen) {
-        canvas.webkitRequestFullscreen();
-      }
-    });
+      startBtn.addEventListener("click", () => {
+        // Pedir pantalla completa
+        if (canvas.requestFullscreen) {
+          canvas.requestFullscreen();
+        } else if (canvas.webkitRequestFullscreen) {
+          canvas.webkitRequestFullscreen();
+        } else if (canvas.msRequestFullscreen) {
+          canvas.msRequestFullscreen();
+        }
 
-    video.addEventListener('loadedmetadata', () => {
-      resizeCanvas();
-      video.play();
-      drawFrame();
-    });
+        // Reproducir video
+        video
+          .play()
+          .then(() => {
+            resizeCanvas();
+            drawFrame();
+            startBtn.style.display = "none";
+          })
+          .catch((err) => {
+            console.error("Error al reproducir video:", err);
+          });
+      });
 
-    video.load();
-  </script>
+      video.addEventListener("loadedmetadata", () => {
+        resizeCanvas();
+      });
 
-</body>
+      // Opcional: vuelve a ajustar tamaño si el usuario rota el dispositivo
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+      });
+    </script>
+  </body>
 </html>
