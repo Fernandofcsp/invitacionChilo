@@ -14,61 +14,110 @@
       height: 100vh;
     }
 
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 720px;
-      aspect-ratio: 16 / 9; /* para mantener proporción en móviles */
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
+    canvas {
+      max-width: 100%;
+      height: auto;
       display: block;
+      cursor: pointer;
     }
 
-    .click-area {
-      position: absolute;
-      top: 32%;    /* Ajusta esto */
-      left: 44%;   /* Ajusta esto */
-      width: 12%;  /* Ajusta tamaño del área */
-      height: 10%; /* Ajusta tamaño del área */
+    #fullscreenBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 8px 12px;
+      border: none;
+      font-weight: bold;
       cursor: pointer;
-      display: none;
-      z-index: 10;
-      /* Para depurar visualmente: */
-       /*background-color: rgba(255, 0, 0, 0.3);*/ 
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
 
-  <div class="video-container">
-    <video id="video" controls>
-      <source src="WhatsApp Video 2025-04-10 at 9.59.04 PM.mp4" type="video/mp4" />
-      Tu navegador no soporta el video.
-    </video>
-    <div id="clickArea" class="click-area" onclick="irAMaps()"></div>
-  </div>
+  <button id="fullscreenBtn">Pantalla completa</button>
+  <canvas id="canvas"></canvas>
+  <video id="video" playsinline muted style="display: none;">
+    <source src="WhatsApp Video 2025-04-10 at 9.59.04 PM.mp4" type="video/mp4" />
+    Tu navegador no soporta el video.
+  </video>
 
   <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
     const video = document.getElementById('video');
-    const area = document.getElementById('clickArea');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-    const tiempoInicio = 17;
-    const tiempoFin = 22;
+    // Hotspot relativo (x, y, w, h en % del video)
+    const hotspot = {
+      x: 0.44, // 44%
+      y: 0.32, // 32%
+      width: 0.12, // 12%
+      height: 0.10, // 10%
+      startTime: 17,
+      endTime: 22,
+      link: "https://maps.app.goo.gl/soZ3Fh1o4QrZ5Hmc6"
+    };
 
-    video.addEventListener('timeupdate', () => {
-      if (video.currentTime >= tiempoInicio && video.currentTime <= tiempoFin) {
-        area.style.display = 'block';
-      } else {
-        area.style.display = 'none';
+    function resizeCanvas() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const t = video.currentTime;
+      if (t >= hotspot.startTime && t <= hotspot.endTime) {
+        // Opcional: dibuja un rectángulo visual del hotspot
+        // ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+        // ctx.fillRect(
+        //   canvas.width * hotspot.x,
+        //   canvas.height * hotspot.y,
+        //   canvas.width * hotspot.width,
+        //   canvas.height * hotspot.height
+        // );
+      }
+
+      requestAnimationFrame(drawFrame);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      const t = video.currentTime;
+      if (t >= hotspot.startTime && t <= hotspot.endTime) {
+        if (
+          x >= hotspot.x &&
+          x <= hotspot.x + hotspot.width &&
+          y >= hotspot.y &&
+          y <= hotspot.y + hotspot.height
+        ) {
+          window.open(hotspot.link, '_blank');
+        }
       }
     });
 
-    function irAMaps() {
-      window.open("https://maps.app.goo.gl/soZ3Fh1o4QrZ5Hmc6", "_blank");
-    }
+    fullscreenBtn.addEventListener('click', () => {
+      if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+      } else if (canvas.webkitRequestFullscreen) {
+        canvas.webkitRequestFullscreen();
+      }
+    });
+
+    video.addEventListener('loadedmetadata', () => {
+      resizeCanvas();
+      video.play();
+      drawFrame();
+    });
+
+    video.load();
   </script>
 
 </body>
